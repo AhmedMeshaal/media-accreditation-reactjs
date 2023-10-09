@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import axios from "axios";
 
 const Individual = ({ individual: {id, email, name, designation, photo_path} }) => {
+
     return (
         <div className='country'>
             <div className='country_flag'>
