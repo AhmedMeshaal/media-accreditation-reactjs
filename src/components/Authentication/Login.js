@@ -1,88 +1,97 @@
-// import React, { useState, useEffect } from 'react';
-//
-// const Login = () => {
-//
-//     const [email, setEmail] = useState('');
-//     const [password, setPassword] = useState('');
-//
-//     const submit = async (event: SyntheticEvent) => {
-//         event.preventDefault();
-//
-//         await fetch('http://accrdet.localhost/api/auth/login', {
-//
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'Accept': 'application/json'
-//             },
-//             credentials: 'include',
-//             body: JSON.stringify({
-//                 email,
-//                 password
-//             })
-//         });
-//     }
-//
-//         return(
-//             <form onSubmit={submit}>
-//                 <h3>Please, Sign in</h3>
-//
-//                 <input type='email' placeholder='Email Address' required onChange={event => setEmail(event.target.value)}/> <br />
-//                 <input type='password' placeholder='Password' required onChange={event => setPassword(event.target.value)}/> <br />
-//
-//                 <button type='submit'>SIGN IN</button>
-//             </form>
-//         )
-//
-// }
-//
-// export default Login;
+import React from 'react';
+import axios from 'axios';
+import { useState } from 'react';
+import { APP_ROUTES, API_ROUTES } from '../../utils/constants';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../lib/customHooks';
+import { storeTokenInLocalStorage } from '../../lib/common';
 
-import React, { useState } from 'react';
 
 const Login = () => {
+    const navigate = useNavigate();
+    const { user, authenticated } = useUser();
+    if (user || authenticated) {
+        navigate(APP_ROUTES.DASHBOARD)
+    }
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
-        const submit = async (e) => {
-            e.preventDefault();
-            const response = await fetch('http://accrdet.localhost/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
-            });
+    const [isLoading, setIsLoading] = useState(false);
 
-            if (response.ok) {
-                // The login was successful.
-                console.log('sogin success');
-            } else {
-                // The login failed.
-                console.log('login failed')
+    const Login = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios({
+                method: 'post',
+                url: API_ROUTES.LOGIN,
+                data: {
+                    email,
+                    password
+                }
+            });
+            if (!response?.data?.token) {
+                console.log('Something went wrong during Login: ', response);
+                return;
             }
+            storeTokenInLocalStorage(response.data.token);
+            navigate(APP_ROUTES.DASHBOARD)
         }
-        
+        catch (error) {
+            console.log('Some error occured during Login: ', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <form onSubmit={submit}>
-            <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button type="submit">Login</button>
-        </form>
+        <div className="w-full h-screen flex justify-center items-center bg-gray-800">
+            <div className="w-1/2 h-1/2 shadow-lg rounded-md bg-white p-8 flex flex-col">
+                <h2 className="text-center font-medium text-2xl mb-4">
+                    Sign in
+                </h2>
+                <div className="flex flex-1 flex-col justify-evenly">
+                    <input
+                        className="border-2 outline-none p-2 rounded-md"
+                        type="email"
+                        placeholder="Enter Your Email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); }}
+                    />
+                    <input
+                        className="border-2 outline-none p-2 rounded-md"
+                        type="password"
+                        placeholder="*******" value={password}
+                        onChange={(e) => { setPassword(e.target.value); }}
+                    />
+
+                    <button
+                        className="
+            flex justify-center
+            p-2 rounded-md w-1/2 self-center
+            bg-gray-800  text-white hover:bg-gray-800"
+                        onClick={Login}
+                    >
+                        {
+                            isLoading ?
+                                <div className="mr-2 w-5 h-5 border-l-2 rounded-full animate-spin" /> : null
+                        }
+                        <span>
+              SIGN IN
+            </span>
+                    </button>
+                </div>
+                <div className="text-center text-sm">
+                    Not a User?
+                    <Link to="/register">
+            <span className="font-medium text-gray-800 ml-1">
+              Sign Up
+            </span>
+                    </Link>
+                </div>
+            </div>
+        </div >
     );
-};
+}
 
 export default Login;
