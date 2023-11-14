@@ -1,53 +1,40 @@
-// import React, {Component} from 'react';
-//
-// import { Routes, Route } from "react-router-dom";
-// import Navbar from "./components/Navbar";
-// import Contact from './components/Contact';
-// import Home from './components/Home';
-// import About from "./components/About";
-// import NotFound from "./components/NotFound";
-// import Login from "./components/Authentication/Login";
-// import Register from "./components/Authentication/Register";
-//
-//
-// class App extends Component {
-//
-//     render() {
-//         return (
-//             <>
-//                 <Navbar/>
-//
-//                 <Routes>
-//                     <Route path="/" element={<Home />} />
-//                     <Route path="/about" element={<About />} />
-//                     <Route path="/contact" element={<Contact />} />
-//                     <Route path="/notFound" element={<NotFound />} />
-//                     <Route path="/login" element={<Login />}/>
-//                     <Route path="/register" element={<Register />} />
-//                 </Routes>
-//
-//             </>
-//         );
-//     }
-// }
-// export default App;
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
+import Dashboard from '../src/components/Dashboard';
+import Login from '../src/components/Login/Login';
+import Preferences from '../src/components/Preferences';
+import useToken from '../src/Hook/useToken';
 
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import Home from './components/Home';
-import Login from './components/Authentication/Login';
-import Register from './components/Authentication/Register';
-import { APP_ROUTES } from './utils/constants';
 
 function App() {
+
+    const { token, setToken } = useToken();
+
+    const handleLogout = () => {
+        // remove the token and user from the session storage
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+
+        window.location.href = '/login';
+    }
+
+
+    if(!token) {
+        return <Login setToken={setToken} />
+    }
+
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route exact path='/' element={<Navigate to={APP_ROUTES.DASHBOARD} />} />
-                <Route path={APP_ROUTES.REGISTER} exact element={<Register />} />
-                <Route path={APP_ROUTES.LOGIN}  exact element={<Login />} />
-                <Route path={APP_ROUTES.DASHBOARD} element={<Home />} />
-            </Routes>
-        </BrowserRouter>
+        <div className="wrapper">
+            <h1>Application</h1>
+            <Router>
+                <Routes>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/preferences" element={<Preferences />} />
+                </Routes>
+            </Router>
+            <button onClick={handleLogout}>Logout</button>
+        </div>
     );
 }
 
